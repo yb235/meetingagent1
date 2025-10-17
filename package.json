@@ -1,0 +1,30 @@
+{
+  "name": "meeting-agent-service",
+  "version": "1.0.0",
+  "description": "Real-time AI Meeting Agent with Recall.ai and Deepgram",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --coverage"
+  },
+  "keywords": [
+    "ai",
+    "meeting",
+    "agent",
+    "deepgram",
+    "recall"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@deepgram/sdk": "^3.2.0",
+    "axios": "^1.12.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "ws": "^8.17.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.4"
+  }
+}
