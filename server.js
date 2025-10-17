@@ -79,6 +79,16 @@ app.post('/set-bot-id', (req, res) => {
   if (!botId) {
     return res.status(400).json({ error: 'botId is required' });
   }
+  
+  // Validate botId format to prevent SSRF attacks
+  // Only allow alphanumeric characters, underscores, and hyphens
+  const validBotIdPattern = /^[a-zA-Z0-9_-]+$/;
+  if (!validBotIdPattern.test(botId)) {
+    return res.status(400).json({ 
+      error: 'Invalid botId format. Only alphanumeric characters, underscores, and hyphens are allowed.' 
+    });
+  }
+  
   currentBotId = botId;
   res.json({ success: true, botId: currentBotId });
 });

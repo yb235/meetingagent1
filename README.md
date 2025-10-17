@@ -32,6 +32,15 @@ node server.js
 
 The server will start on the port specified in your `.env` file (default: 8080).
 
+## Testing
+
+Run the test suite:
+```bash
+npm test
+```
+
+This will run all tests and generate a coverage report.
+
 ## API Endpoints
 
 ### POST /briefing
