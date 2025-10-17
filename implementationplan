@@ -1,0 +1,118 @@
+Of course. This is the perfect way to ensure a successful implementation. We will create a comprehensive guide, broken down into detailed prompts and documentation references, designed to be executed by a coding agent like GitHub Copilot.
+
+Think of this as the "master plan" or the `PROJECT_BRIEF.md` for your AI development partner.
+
+---
+
+### **Project Brief: Real-time AI Meeting Agent**
+
+**To the AI Coding Agent:** Your mission is to build a real-time AI meeting agent based on the following detailed plan. Follow each step precisely. All necessary context, prompts, and documentation links are provided.
+
+**Project Goal:** Create a web service that deploys an AI agent into live meetings (Zoom, Teams, etc.). This agent will provide real-time summaries of the conversation and can be commanded to speak user-provided text into the meeting.
+
+**Core Technologies & Rationale:**
+*   **Runtime:** Node.js with Express.js (A mature, event-driven environment perfect for handling real-time data streams).
+*   **Meeting Connector:** **Recall.ai**. It specializes in the complex task of getting a bot into a meeting and managing audio streams, providing a simple API for a complex problem.
+*   **AI Provider:** **Deepgram**. We are using Deepgram for a consolidated stack to handle:
+    1.  **Speech-to-Text (STT):** Real-time transcription.
+    2.  **Language Model (LLM):** On-demand summarization.
+    3.  **Text-to-Speech (TTS):** Generating the agent's voice.
+    This consolidation simplifies development, maintenance, and billing.
+
+---
+
+### **Phase 0: Prerequisites & Setup**
+
+**Prompt:** "Before we begin coding, we must set up our environment. Create a `README.md` file and add the following setup instructions to it."
+
+````markdown
+# AI Meeting Agent - Setup
+
+1.  **Install Node.js:** Ensure you have Node.js (v18 or newer) installed.
+2.  **Create API Keys:**
+    *   **Deepgram:** Sign up at [deepgram.com](https://deepgram.com) and create an API Key. Ensure it has admin privileges.
+    *   **Recall.ai:** Sign up at [recall.ai](https://recall.ai) and get your API Key from the dashboard.
+3.  **Create Project Directory:**
+    ```bash
+    mkdir meeting-agent-service
+    cd meeting-agent-service
+    npm init -y
+    ```
+4.  **Install Dependencies:**
+    ```bash
+    npm install express dotenv @deepgram/sdk
+    ```
+5.  **Create Environment File:** Create a file named `.env` and add your secret keys. **This file must not be committed to version control.**
+    ```.env
+    DEEPGRAM_API_KEY="YOUR_DEEPGRAM_API_KEY"
+    RECALLAI_API_KEY="YOUR_RECALLAI_API_KEY"
+    PORT=8080
+    ```
+6.  **Create `.gitignore`:** Create a `.gitignore` file to exclude `node_modules` and `.env`.
+    ```.gitignore
+    node_modules
+    .env
+    ```
+````
+
+---
+
+### **Phase 1: Foundation - The Web Server & Live Transcription**
+
+**Goal:** Create a web server that can receive a real-time audio stream from Recall.ai and transcribe it using Deepgram.
+
+**Prompt 1.1: Create the Basic Web Server**
+"Create a file named `server.js`. In this file, import `express` and `dotenv`, configure `dotenv`, and set up a basic Express server that listens on the `PORT` defined in our `.env` file. Add a simple root `/` endpoint that returns a "Server is running" message."
+
+**Prompt 1.2: Set up the Deepgram Connection**
+"In `server.js`, import the Deepgram SDK (`@deepgram/sdk`). Initialize the Deepgram client using our API key. Then, create a WebSocket endpoint at `/listen`. This endpoint will handle the live transcription. When a WebSocket connection is established, initialize a Deepgram live transcription connection. The incoming audio data from the WebSocket will be piped directly to Deepgram. Log the received transcripts to the console."
+
+*   **Reference:** Deepgram Node.js SDK for Real-time Transcription: [https://developers.deepgram.com/docs/listen-live-sdks](https://developers.deepgram.com/docs/listen-live-sdks)
+
+**Prompt 1.3: Understand the Recall.ai Bot Connection**
+"This step is conceptual but critical for understanding the architecture. We will use the Recall.ai API to create a bot. When creating the bot, we will provide the WebSocket URL of our server (e.g., `wss://your-server-url.com/listen`). Recall.ai's bot will then connect to our `/listen` endpoint and stream the meeting's audio to it. For now, just add a comment in `server.js` explaining this."
+
+*   **Reference:** Recall.ai Bot API (`destination_endpoint`): [https://docs.recall.ai/reference/bot#destination_endpoint](https://docs.recall.ai/reference/bot#destination_endpoint)
+
+---
+
+### **Phase 2: The Brain - Real-time Briefings**
+
+**Goal:** Implement an endpoint that can provide a summary of the recent conversation.
+
+**Prompt 2.1: Implement Transcript Buffering**
+"In `server.js`, create a global variable, `transcriptBuffer` (as an array). As transcripts are received from Deepgram in the `/listen` endpoint, push them into this array. To keep the buffer from growing indefinitely, add logic to ensure it only stores the last 3 minutes of conversation. You can add a timestamp to each transcript part and filter out old ones."
+
+**Prompt 2.2: Create the `/briefing` Endpoint**
+"Create a new `POST` endpoint at `/briefing`. This endpoint will be responsible for generating the summary. When a request is received, it should join the text from the `transcriptBuffer` into a single string."
+
+**Prompt 2.3: Integrate Deepgram Summarization**
+"Inside the `/briefing` endpoint, after getting the transcript text, send it to the Deepgram Pre-recorded API with the `summarize=v2` option. The API will return a summary. Send this summary back as the JSON response for the endpoint."
+
+*   **Reference:** Deepgram Summarization API: [https://developers.deepgram.com/docs/summarization](https://developers.deepgram.com/docs/summarization)
+
+---
+
+### **Phase 3: The Voice - Asking Questions Live**
+
+**Goal:** Implement an endpoint that takes text, converts it to speech, and plays it into the meeting.
+
+**Prompt 3.1: Create the `/speak` Endpoint**
+"Create a new `POST` endpoint at `/speak`. It should expect a JSON body with a `text` field, like `{ "text": "Hello, this is the AI agent." }`."
+
+**Prompt 3.2: Integrate Deepgram Text-to-Speech (Aura)**
+"Inside the `/speak` endpoint, use the Deepgram SDK's `speak.request` method to convert the incoming text into speech. This will return an audio stream."
+
+*   **Reference:** Deepgram Text-to-Speech with Node.js SDK: [https://developers.deepgram.com/docs/text-to-speech-sdks](https://developers.deepgram.com/docs/text-to-speech-sdks)
+
+**Prompt 3.3: Stream Synthesized Audio to Recall.ai**
+"This is the final connection. The audio stream returned from Deepgram's TTS API needs to be sent back to the Recall.ai bot to be played in the meeting. Recall.ai provides a specific API endpoint for this. Your `/speak` endpoint should stream the audio from Deepgram directly to the Recall.ai 'Play Audio' endpoint for the specific bot."
+
+*   **Reference:** Recall.ai Play Audio into a call: [https://docs.recall.ai/reference/bot#play-audio-into-a-call](https://docs.recall.ai/reference/bot#play-audio-into-a-call)
+*   **Note:** You will need the `bot_id` to call this endpoint. Your application will need to store the `bot_id` when it first creates the bot.
+
+---
+
+### **Final Prompt: Review and Document**
+
+"The core logic is complete. Now, review the `server.js` file. Add comments to each major block of code (WebSocket handling, each API endpoint) explaining its purpose and the flow of data. Finally, update the `README.md` with instructions on how to run the server (`node server.js`) and how to use a tool like `curl` or Postman to test the `/briefing` and `/speak` endpoints."
